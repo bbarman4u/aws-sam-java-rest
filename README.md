@@ -65,10 +65,14 @@ management.
 
 ### Installing dependencies
 
-We use `maven` to install our dependencies and package our application into a JAR file:
+We use `maven` to install our dependencies and package our application into a JAR/Zip file:
 
 ```bash
 mvn package
+```
+On Powershell on Windows
+```
+mvn "-Dmaven.test.skip=true" clean package
 ```
 
 ### Local development

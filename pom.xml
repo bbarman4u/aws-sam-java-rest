@@ -12,34 +12,6 @@
         <tag>1.0.0</tag>
     </scm>
 
-    <developers>
-        <developer>
-            <name>Alexander Patrikalakis</name>
-            <email>amcpatrikalakis@gmail.com</email>
-            <url>https://www.linkedin.com/in/amcpatrix/</url>
-        </developer>
-        <developer>
-            <name>Anubha Mandal</name>
-            <email>anubhamandal@gmail.com</email>
-            <url>https://www.linkedin.com/in/anubhamandal/</url>
-        </developer>
-        <developer>
-            <name>Shashank Saxena</name>
-            <email>saxena.shashank96@gmail.com</email>
-            <url>https://www.linkedin.com/in/shank96/</url>
-        </developer>
-        <developer>
-            <name>Jacob Fuss</name>
-            <email>jfuss@amazon.com</email>
-            <url>https://www.linkedin.com/in/jacob-fuss-11878731/</url>
-        </developer>
-        <developer>
-            <name>Mario Freitas</name>
-            <email>supmario@amazon.co.jp</email>
-            <url>https://www.linkedin.com/in/mariofreitas/</url>
-        </developer>
-    </developers>
-    <inceptionYear>2018</inceptionYear>
     <licenses>
         <license>
             <name>MIT No Attribution</name>
@@ -48,6 +20,7 @@
     </licenses>
 
     <properties>
+        <maven.test.skip>true</maven.test.skip>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.plugin.version>3.8.0</maven.compiler.plugin.version>
@@ -56,7 +29,7 @@
         <dynamodblocal.version>1.11.119</dynamodblocal.version>
         <lombok.version>1.18.2</lombok.version>
         <dagger.version>2.16</dagger.version>
-        <junit.version>[4.13.1,)</junit.version>
+        <junit.version>4.12</junit.version>
         <mockito.version>2.0.2-beta</mockito.version>
         <maven.shade.plugin.version>3.1.1</maven.shade.plugin.version>
         <failsafe.plugin.version>2.22.0</failsafe.plugin.version>
@@ -76,16 +49,6 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>dynamodb</artifactId>
             <version>${aws.sdk.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-codec-http</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-handler</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -157,12 +120,12 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec-http</artifactId>
-                <version>[4.1.59.Final,)</version>
+                <version>4.1.46.Final</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler</artifactId>
-                <version>[4.1.59.Final,)</version>
+                <version>4.1.46.Final</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -257,30 +220,57 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven.shade.plugin.version}</version>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M1</version>
                 <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            
+            <!-- Un comment to use the lambda java shaded jar -->
+            <!-- reference: https://docs.aws.amazon.com/lambda/latest/dg/java-package.html#java-package-maven -->
+            <!-- <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                <createDependencyReducedPom>false</createDependencyReducedPom>
                 </configuration>
                 <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                    <goal>shade</goal>
+                    </goals>
+                </execution>
+                </executions>
+            </plugin> -->
+            
+            <!-- Used to create the Lambda deployment package as zip -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
                     <execution>
+                        <id>001-make-assembly</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>shade</goal>
+                            <goal>single</goal>
                         </goals>
-                        <configuration>
-                            <minimizeJar>true</minimizeJar>
-                            <filters>
-                                <filter>
-                                    <artifact>commons-logging:commons-logging</artifact>
-                                    <includes>
-                                        <include>**</include>
-                                    </includes>
-                                </filter>
-                            </filters>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <descriptors>
+                        <descriptor>src/assembly/lambda-zip.xml</descriptor>
+                    </descriptors>
+                    <!-- Uncomment for creating jars using Maven Assembly plugin -->
+                   <!-- <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs> -->
+                    <finalName>aws-sam-java-rest</finalName>
+                </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
